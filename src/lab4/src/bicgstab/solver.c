@@ -5,6 +5,7 @@
 
 void gemv(double* __restrict y, double* __restrict A, double* __restrict x, int N) {
     // y = A * x
+    #pragma omp parallel for
     for (int i = 0; i < N; i++) {
         y[i] = 0.0;
         for (int j = 0; j < N; j++) {
@@ -16,6 +17,7 @@ void gemv(double* __restrict y, double* __restrict A, double* __restrict x, int 
 double dot_product(double* __restrict x, double* __restrict y, int N) {
     // dot product of x and y
     double result = 0.0;
+    #pragma omp parallel for simd reduction(+:result)
     for (int i = 0; i < N; i++) {
         result += x[i] * y[i];
     }
@@ -24,6 +26,7 @@ double dot_product(double* __restrict x, double* __restrict y, int N) {
 
 void precondition(double* __restrict A, double* __restrict K2_inv, int N) {
     // K2_inv = 1 / diag(A)
+    #pragma omp parallel for
     for (int i = 0; i < N; i++) {
         K2_inv[i] = 1.0 / A[i * N + i];
     }
@@ -31,6 +34,7 @@ void precondition(double* __restrict A, double* __restrict K2_inv, int N) {
 
 void precondition_apply(double* __restrict z, double* __restrict K2_inv, double* __restrict r, int N) {
     // z = K2_inv * r
+    #pragma omp parallel for
     for (int i = 0; i < N; i++) {
         z[i] = K2_inv[i] * r[i];
     }
@@ -66,6 +70,7 @@ int bicgstab(int N, double* A, double* b, double* x, int max_iter, double tol) {
 
     // 1. r0 = b - A * x0
     gemv(r, A, x, N);
+    #pragma omp parallel for
     for (int i = 0; i < N; i++) {
         r[i] = b[i] - r[i];
     }
@@ -96,11 +101,13 @@ int bicgstab(int N, double* A, double* b, double* x, int max_iter, double tol) {
         alpha = rho / dot_product(r_hat, v, N);
 
         // 4. h = x_{i-1} + alpha * y
+        #pragma omp parallel for
         for (int i = 0; i < N; i++) {
             h[i] = x[i] + alpha * y[i];
         }
 
         // 5. s = r_{i-1} - alpha * v
+        #pragma omp parallel for
         for (int i = 0; i < N; i++) {
             s[i] = r[i] - alpha * v[i];
         }
@@ -121,11 +128,13 @@ int bicgstab(int N, double* A, double* b, double* x, int max_iter, double tol) {
         omega = dot_product(t, s, N) / dot_product(t, t, N);
 
         // 10. x_i = h + omega * z
+        #pragma omp parallel for
         for (int i = 0; i < N; i++) {
             x[i] = h[i] + omega * z[i];
         }
 
         // 11. r_i = s - omega * t
+        #pragma omp parallel for
         for (int i = 0; i < N; i++) {
             r[i] = s[i] - omega * t[i];
         }
@@ -141,6 +150,7 @@ int bicgstab(int N, double* A, double* b, double* x, int max_iter, double tol) {
         beta = (rho / rho_old) * (alpha / omega);
 
         // 15. p_i = r_i + beta * (p_{i-1} - omega * v)
+        #pragma omp parallel for
         for (int i = 0; i < N; i++) {
             p[i] = r[i] + beta * (p[i] - omega * v[i]);
         }
