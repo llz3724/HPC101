@@ -11,9 +11,9 @@ set(CMAKE_CXX_COMPILER "mpiicpx")
 set(CMAKE_Fortran_COMPILER "mpiifx")
 
 # Set flags
-set(CMAKE_C_FLAGS "-Og -g -qopenmp")
-set(CMAKE_CXX_FLAGS "-Og -g -qopenmp")
-set(CMAKE_Fortran_FLAGS "-Og -g -qopenmp")
+set(CMAKE_C_FLAGS "-O3 -g -qopenmp -xICELAKE-SERVER -ipo")
+set(CMAKE_CXX_FLAGS "-O3 -g -qopenmp  -xICELAKE-SERVER -ipo")
+set(CMAKE_Fortran_FLAGS "-O3 -g -qopenmp  -xICELAKE-SERVER -ipo")
 
 # Include headers
 include_directories(include)
